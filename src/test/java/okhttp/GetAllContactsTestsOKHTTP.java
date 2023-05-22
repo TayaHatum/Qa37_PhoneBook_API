@@ -1,7 +1,9 @@
 package okhttp;
 
 import com.google.gson.Gson;
+import dto.ContactDTO;
 import dto.ErrorDTO;
+import dto.GetAllContactsDTO;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -9,6 +11,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.util.List;
 
 public class GetAllContactsTestsOKHTTP {
     String token ="eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJST0xFX1VTRVIiXSwic3ViIjoibm9hQGdtYWlsLmNvbSIsImlzcyI6IlJlZ3VsYWl0IiwiZXhwIjoxNjg1MzczNDEwLCJpYXQiOjE2ODQ3NzM0MTB9.qSFQBQkMEGVHRvyaofm8b6ONJZeW4dHPdUlTcVVSqrg";
@@ -26,7 +29,14 @@ public class GetAllContactsTestsOKHTTP {
         Response response = client.newCall(request).execute();
         Assert.assertTrue(response.isSuccessful());
         Assert.assertEquals(response.code(),200);
+        GetAllContactsDTO contactsDTO = gson.fromJson(response.body().string(), GetAllContactsDTO.class);
+        List<ContactDTO> contacts = contactsDTO.getContacts();
+        for (ContactDTO c :contacts) {
+            System.out.println(c.getId());
+            System.out.println(c.getEmail());
 
+
+        }
 
 
 
