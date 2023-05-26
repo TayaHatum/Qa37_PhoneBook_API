@@ -1,29 +1,54 @@
 package okhttp;
 
 import com.google.gson.Gson;
-import dto.DeleteByIdResponseDTO;
+import dto.ContactDTO;
+import dto.MessageDTO;
 import dto.ErrorDTO;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.util.Random;
 
 public class DeleteContactByIDOkhttp {
     String token ="eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJST0xFX1VTRVIiXSwic3ViIjoibm9hQGdtYWlsLmNvbSIsImlzcyI6IlJlZ3VsYWl0IiwiZXhwIjoxNjg1MzczNDEwLCJpYXQiOjE2ODQ3NzM0MTB9.qSFQBQkMEGVHRvyaofm8b6ONJZeW4dHPdUlTcVVSqrg";
     Gson gson=new Gson();
     OkHttpClient client = new OkHttpClient();
+    public static final MediaType JSON=MediaType.get("application/json;charset=utf-8");
     String id;
 
 
     @BeforeMethod
-    public void precondition(){
+    public void precondition() throws IOException {
         // create contact
+        int i = new Random().nextInt(1000)+1000;
+        ContactDTO contactDTO = ContactDTO.builder()
+                .name("Maya")
+                .lastName("Dow")
+                .address("NY")
+                .email("maya"+i+"@gmail.com")
+                .phone("1234556"+i)
+                .description("The best friend")
+                        .build();
+        RequestBody body = RequestBody.create(gson.toJson(contactDTO),JSON);
+        Request request = new Request.Builder()
+                .url("https://contactapp-telran-backend.herokuapp.com/v1/contacts")
+                .post(body)
+                .addHeader("Authorization",token)
+                .build();
+        Response response = client.newCall(request).execute();
+        Assert.assertTrue(response.isSuccessful());
+        MessageDTO messageDTO = gson.fromJson(response.body().string(),MessageDTO.class);
+        String  message = messageDTO.getMessage(); //"Contact was added! ID: 932c375d-1fb4-4255-be43-76ef37dabeec"
+
+        System.out.println( message);
         // get id from "message": "Contact was added! ID: 932c375d-1fb4-4255-be43-76ef37dabeec"
+        String[] all = message.split(": ");
         // id="".
+        id = all[1];
+        System.out.println(id);
     }
     @Test
     public void deleteContactByIdSuccess() throws IOException {
@@ -34,7 +59,7 @@ public class DeleteContactByIDOkhttp {
                 .build();
         Response response = client.newCall(request).execute();
         Assert.assertEquals(response.code(),200);
-        DeleteByIdResponseDTO dto = gson.fromJson(response.body().string(), DeleteByIdResponseDTO.class);
+        MessageDTO dto = gson.fromJson(response.body().string(), MessageDTO.class);
         Assert.assertEquals(dto.getMessage(),"Contact was deleted!");
         System.out.println( dto.getMessage());
 
